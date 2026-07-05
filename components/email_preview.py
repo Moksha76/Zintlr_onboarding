@@ -4,7 +4,7 @@ import os
 import streamlit as st
 
 import config
-from services import email_service, pdf_service, template_engine
+from services import email_service, pdf_service, stage_service, template_engine
 
 
 @st.dialog("Email Preview", width="large")
@@ -95,6 +95,13 @@ def show_email_preview(template_key: str, joiner: dict):
                     template_key=template_key,
                 )
             if success:
-                st.success("Email sent.")
+                extra_fields = {}
+                if template_key == "bg_verification":
+                    extra_fields = {
+                        "bg_deadline_date": context.get("bg_deadline_date"),
+                        "bg_deadline_time": context.get("bg_deadline_time"),
+                    }
+                stage_service.advance_stage_after_send(joiner.get("id"), template_key, extra_fields=extra_fields)
+                st.success("Email sent. Close this window to see the updated stage.")
             else:
                 st.error(f"Send failed: {error}")

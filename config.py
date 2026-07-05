@@ -38,6 +38,22 @@ DESIGNATION_TO_TEAM = {
     "Other": "team",
 }
 
+# Stage chip colours (Section 15)
+STAGE_COLORS = {
+    "NEW": "amber",
+    "BG_SENT": "blue",
+    "BG_RECEIVED": "indigo",
+    "OFFER_CONFIRMED": "purple",
+    "DB_SENT": "violet",
+    "DB_RECEIVED": "violet",
+    "ONBOARDING": "teal",
+    "JOINED": "green",
+    "FORMS_PENDING": "orange",
+    "FORM11_DUE": "red",
+    "COMPLETED": "gray",
+    "DROPPED": "gray",
+}
+
 # Inventory
 INVENTORY_THRESHOLD = 3
 

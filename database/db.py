@@ -289,6 +289,34 @@ def _seed_inventory(session):
     session.commit()
 
 
+def _migrate_schema():
+    """Add any columns that exist in the models but not yet in the actual
+    SQLite tables, so the app keeps working across schema changes without
+    requiring the database file to be deleted every time."""
+    from sqlalchemy import inspect
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    with engine.begin() as conn:
+        for table_name, table in Base.metadata.tables.items():
+            if table_name not in existing_tables:
+                continue
+            existing_columns = {col["name"] for col in inspector.get_columns(table_name)}
+            for column in table.columns:
+                if column.name in existing_columns:
+                    continue
+                col_type = column.type.compile(engine.dialect)
+                conn.exec_driver_sql(f'ALTER TABLE "{table_name}" ADD COLUMN "{column.name}" {col_type}')
+
+                default = column.default.arg if column.default is not None else None
+                if default is not None and not callable(default):
+                    literal = "1" if default is True else "0" if default is False else repr(default)
+                    conn.exec_driver_sql(
+                        f'UPDATE "{table_name}" SET "{column.name}" = {literal} WHERE "{column.name}" IS NULL'
+                    )
+
+
 def init_db():
     os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
     os.makedirs(config.GENERATED_DIR, exist_ok=True)
@@ -296,6 +324,7 @@ def init_db():
     os.makedirs(os.path.dirname(config.LOG_FILE), exist_ok=True)
 
     Base.metadata.create_all(engine)
+    _migrate_schema()
 
     session = SessionLocal()
     try:

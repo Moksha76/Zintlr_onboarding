@@ -51,8 +51,23 @@ class Joiner(Base):
     tshirt_handed_over_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     mbti_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     insurance_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    obligation_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     form11_due_date: Mapped[Date | None] = mapped_column(Date, nullable=True)  # computed as doj + 15 days
     form11_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    teams_outlook_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    teams_outlook_done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    znexus_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    znexus_done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    zintlr_tool_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    zintlr_tool_done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    scrut_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    scrut_done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    salary_account_discussed: Mapped[bool] = mapped_column(Boolean, default=False)
+    salary_account_discussed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    biometric_access_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    biometric_access_done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    dropped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    dropped_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -63,7 +78,7 @@ class Joiner(Base):
 
 # current_stage allowed values (in order):
 # NEW, BG_SENT, BG_RECEIVED, OFFER_CONFIRMED, DB_SENT, DB_RECEIVED,
-# ONBOARDING, JOINED, FORMS_PENDING, FORM11_DUE, COMPLETED
+# ONBOARDING, JOINED, FORMS_PENDING, FORM11_DUE, COMPLETED, DROPPED
 STAGES = [
     "NEW",
     "BG_SENT",
@@ -76,6 +91,7 @@ STAGES = [
     "FORMS_PENDING",
     "FORM11_DUE",
     "COMPLETED",
+    "DROPPED",
 ]
 
 

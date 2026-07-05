@@ -52,6 +52,23 @@ try:
             st.caption(f"Attachments: {', '.join(attachments) if attachments else 'None'}")
             st.caption(f"Last updated: {t.updated_at}")
 
+            static_keys = [k for k in attachments if k in config.STATIC_ATTACHMENTS]
+            for skey in static_keys:
+                static_path = config.STATIC_ATTACHMENTS[skey]
+                st.markdown(f"**Attachment file:** `{os.path.basename(static_path)}`")
+                new_file = st.file_uploader(
+                    "Replace this PDF (same file gets sent to every candidate)",
+                    type=["pdf"],
+                    key=f"replace_{t.template_key}_{skey}",
+                )
+                if new_file is not None and st.button(
+                    "Save replacement", key=f"save_replace_{t.template_key}_{skey}"
+                ):
+                    os.makedirs(os.path.dirname(static_path), exist_ok=True)
+                    with open(static_path, "wb") as f:
+                        f.write(new_file.getvalue())
+                    st.success(f"Replaced {os.path.basename(static_path)}.")
+
             st.markdown("**Body preview:**")
             st.code(t.body_html, language="html")
 

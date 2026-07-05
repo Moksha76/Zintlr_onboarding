@@ -77,6 +77,16 @@ def show_email_preview(template_key: str, joiner: dict):
                         key=f"download_{path}",
                     )
 
+    st.markdown("**Add attachment** (optional — attached to this send only)")
+    extra_file = st.file_uploader("Attach an additional file", key="extra_attachment")
+    extra_attachment_path = None
+    if extra_file is not None:
+        os.makedirs(config.GENERATED_DIR, exist_ok=True)
+        extra_attachment_path = os.path.join(config.GENERATED_DIR, f"extra_{extra_file.name}")
+        with open(extra_attachment_path, "wb") as f:
+            f.write(extra_file.getvalue())
+        st.caption(f"Will also attach: {extra_file.name}")
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Cancel"):
@@ -84,13 +94,14 @@ def show_email_preview(template_key: str, joiner: dict):
     with col2:
         if st.button("Send via Outlook", type="primary", disabled=bg_missing_deadline):
             full_cc = ", ".join(filter(None, [rendered.mandatory_cc, additional_cc]))
+            final_attachments = attachment_paths + ([extra_attachment_path] if extra_attachment_path else [])
             with st.spinner("Sending via Outlook... (may take up to 30s if a retry is needed)"):
                 success, error = email_service.send_email(
                     to=rendered.to_addr,
                     cc=full_cc,
                     subject=subject,
                     body_html=body_html,
-                    attachment_paths=attachment_paths,
+                    attachment_paths=final_attachments,
                     joiner_id=joiner.get("id"),
                     template_key=template_key,
                 )

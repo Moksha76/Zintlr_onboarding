@@ -4,8 +4,19 @@ load_dotenv()
 
 # Email
 SENDER_EMAIL = "mokshaprada.p@zintlr.com"
+SENDER_PHONE = "(+91) 6366940993"
 HR_ADMIN_EMAIL = "hradmin@zintlr.com"
 NISHA_EMAIL = os.getenv("NISHA_EMAIL", "")   # Set in .env once confirmed
+
+# Standard signature appended to every email template. Centralized so the phone
+# number/contact details can never drift between templates.
+SIGNATURE_BLOCK = (
+    "Thanks & Regards,<br/>"
+    "Moksha Prada .P<br/>"
+    "Admin Ops<br/>"
+    f"{SENDER_PHONE}<br/>"
+    "Zintlr Pvt. Ltd."
+)
 
 # Designations
 DESIGNATIONS = [
@@ -43,6 +54,7 @@ DB_PATH = "database/onboarding.db"
 GENERATED_DIR = "generated"
 BACKUP_DIR = "backups"
 LOG_FILE = "logs/activity.log"
+STATIC_ATTACHMENTS_DIR = "documents/static_attachments"
 CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH", "credentials.json")
 GOOGLE_SHEET_URL = os.getenv("GOOGLE_SHEET_URL", "")
 
@@ -74,5 +86,11 @@ LINKS = {
     "leadership_video": "https://m.youtube.com/watch?v=eSvLFPFXjc8",
     "office_map": "https://maps.app.goo.gl/xk3x3pLLh4cusysNA",
     "mbti_test": "https://www.16personalities.com/free-personality-test",
-    "insurance_form": "https://docs.google.com/forms/d/e/1FAIpQLSch5srG7kKHIk11pO54yKCKKObOInq6noOd4vawSPNsCDnGjg/viewform",
+    "insurance_form": "https://forms.gle/jTe9J6fpRSjpUHpR6",
+}
+
+# Static, non-personalized attachment files (same file sent to every candidate)
+STATIC_ATTACHMENTS = {
+    "form11_reference": f"{STATIC_ATTACHMENTS_DIR}/form11_reference_form.pdf",
+    "obligation": f"{STATIC_ATTACHMENTS_DIR}/zintlr_obligations.pdf",
 }

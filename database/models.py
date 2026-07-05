@@ -109,6 +109,18 @@ class EmailTemplate(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class DocumentTemplate(Base):
+    __tablename__ = "document_templates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    document_key: Mapped[str] = mapped_column(Text, nullable=False)
+    display_name: Mapped[str] = mapped_column(Text, nullable=False)
+    body_text: Mapped[str] = mapped_column(Text, nullable=False)  # plain text with Jinja2 variables
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class EmailLog(Base):
     __tablename__ = "email_log"
 

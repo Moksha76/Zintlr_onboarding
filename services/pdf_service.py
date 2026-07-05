@@ -1,5 +1,6 @@
 import os
 
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
@@ -12,7 +13,7 @@ LETTERHEAD_TITLE = "Zintlr Private Limited"
 LETTERHEAD_FOOTER = (
     "Zintlr Private Limited<br/>"
     "No. 7, 7th Cross, Hebbal Ganganagara Layout, Ganganagar, RT Nagar, Bengaluru - 560032<br/>"
-    "hr@zintlr.com | +91 83107 60719"
+    '<link href="mailto:hr@zintlr.com" color="blue"><u>hr@zintlr.com</u></link> | +91 83107 60719'
 )
 # Optional — drop a logo file here and it's picked up automatically, no code change needed.
 LOGO_PATH = os.path.join("static", "logo.png")
@@ -30,7 +31,8 @@ _footer_style = ParagraphStyle(
     parent=_styles["Normal"],
     fontSize=8,
     leading=11,
-    textColor="#555555",
+    textColor="#333333",
+    alignment=TA_CENTER,
 )
 
 

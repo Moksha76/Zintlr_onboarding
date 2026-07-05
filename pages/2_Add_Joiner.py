@@ -14,7 +14,7 @@ with st.form("add_joiner_form", clear_on_submit=False):
     full_name = st.text_input("Full name")
     candidate_email = st.text_input("Candidate email")
     designation = st.selectbox("Designation", options=[""] + config.DESIGNATIONS)
-    doj = st.date_input("Date of joining", value=None)
+    doj = st.date_input("Date of joining", value=None, format="DD/MM/YYYY")
     submitted = st.form_submit_button("Add Joiner")
 
 if submitted:

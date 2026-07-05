@@ -9,7 +9,13 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 import config
 from services.template_engine import render_document
 
-LETTERHEAD_TITLE = "Zintlr Private Limited"
+LETTERHEAD_TITLE = "ZINTLR"
+LETTERHEAD_SUBTITLE = "Private Limited"
+LETTERHEAD_CIN = "CIN: U72900KA2022PTC165582"
+LETTERHEAD_WEBSITE = "www.zintlr.com"
+LETTERHEAD_LOCATION = "Bangaluru, India"
+LETTERHEAD_PURPLE = "#4B3F91"
+LETTERHEAD_GOLD = "#F0A93A"
 LETTERHEAD_FOOTER = (
     "Zintlr Private Limited<br/>"
     "No. 7, 7th Cross, Hebbal Ganganagara Layout, Ganganagar, RT Nagar, Bengaluru - 560032<br/>"
@@ -40,13 +46,14 @@ def _draw_letterhead(canvas, doc):
     canvas.saveState()
     page_width, page_height = A4
     x = doc.leftMargin
+    right_x = page_width - doc.rightMargin
 
     if os.path.exists(LOGO_PATH):
-        logo_size = 1.4 * cm
+        logo_size = 1.3 * cm
         canvas.drawImage(
             LOGO_PATH,
             x,
-            page_height - 2.0 * cm,
+            page_height - 2.1 * cm,
             width=logo_size,
             height=logo_size,
             preserveAspectRatio=True,
@@ -54,21 +61,31 @@ def _draw_letterhead(canvas, doc):
         )
         x += logo_size + 0.3 * cm
 
-    canvas.setFont("Helvetica-Bold", 14)
-    canvas.setFillColor("#1a1a1a")
-    canvas.drawString(x, page_height - 1.6 * cm, LETTERHEAD_TITLE)
+    canvas.setFont("Helvetica-Bold", 15)
+    canvas.setFillColor(LETTERHEAD_PURPLE)
+    canvas.drawString(x, page_height - 1.5 * cm, LETTERHEAD_TITLE)
 
-    canvas.setStrokeColor("#333333")
-    canvas.setLineWidth(0.75)
-    canvas.line(doc.leftMargin, page_height - 2.3 * cm, page_width - doc.rightMargin, page_height - 2.3 * cm)
+    canvas.setFont("Helvetica-Bold", 9)
+    canvas.setFillColor(LETTERHEAD_PURPLE)
+    canvas.drawString(x, page_height - 1.95 * cm, LETTERHEAD_SUBTITLE)
+
+    canvas.setFont("Helvetica", 7.5)
+    canvas.setFillColor("#666666")
+    canvas.drawRightString(right_x, page_height - 1.4 * cm, LETTERHEAD_CIN)
+    canvas.drawRightString(right_x, page_height - 1.75 * cm, LETTERHEAD_WEBSITE)
+    canvas.drawRightString(right_x, page_height - 2.1 * cm, LETTERHEAD_LOCATION)
+
+    canvas.setStrokeColor(LETTERHEAD_GOLD)
+    canvas.setLineWidth(1.5)
+    canvas.line(doc.leftMargin, page_height - 2.4 * cm, right_x, page_height - 2.4 * cm)
 
     footer = Paragraph(LETTERHEAD_FOOTER, _footer_style)
     footer.wrap(doc.width, doc.bottomMargin)
     footer.drawOn(canvas, doc.leftMargin, 1.0 * cm)
 
-    canvas.setStrokeColor("#cccccc")
-    canvas.setLineWidth(0.5)
-    canvas.line(doc.leftMargin, 1.8 * cm, page_width - doc.rightMargin, 1.8 * cm)
+    canvas.setStrokeColor(LETTERHEAD_GOLD)
+    canvas.setLineWidth(1.5)
+    canvas.line(doc.leftMargin, 1.8 * cm, right_x, 1.8 * cm)
 
     canvas.restoreState()
 

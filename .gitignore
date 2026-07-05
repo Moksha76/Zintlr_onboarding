@@ -1,6 +1,6 @@
 .env
 credentials.json
-generated/
+static/generated/
 backups/
 *.db
 __pycache__/

@@ -1,4 +1,4 @@
-streamlit>=1.30
+streamlit>=1.31
 sqlalchemy>=2.0
 pywin32>=306
 gspread>=6.0

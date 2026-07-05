@@ -8,11 +8,14 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 import config
 from services.template_engine import render_document
 
+LETTERHEAD_TITLE = "Zintlr Private Limited"
 LETTERHEAD_FOOTER = (
     "Zintlr Private Limited<br/>"
     "No. 7, 7th Cross, Hebbal Ganganagara Layout, Ganganagar, RT Nagar, Bengaluru - 560032<br/>"
     "hr@zintlr.com | +91 83107 60719"
 )
+# Optional — drop a logo file here and it's picked up automatically, no code change needed.
+LOGO_PATH = os.path.join("static", "logo.png")
 
 _styles = getSampleStyleSheet()
 _body_style = ParagraphStyle(
@@ -31,11 +34,40 @@ _footer_style = ParagraphStyle(
 )
 
 
-def _draw_footer(canvas, doc):
+def _draw_letterhead(canvas, doc):
     canvas.saveState()
+    page_width, page_height = A4
+    x = doc.leftMargin
+
+    if os.path.exists(LOGO_PATH):
+        logo_size = 1.4 * cm
+        canvas.drawImage(
+            LOGO_PATH,
+            x,
+            page_height - 2.0 * cm,
+            width=logo_size,
+            height=logo_size,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
+        x += logo_size + 0.3 * cm
+
+    canvas.setFont("Helvetica-Bold", 14)
+    canvas.setFillColor("#1a1a1a")
+    canvas.drawString(x, page_height - 1.6 * cm, LETTERHEAD_TITLE)
+
+    canvas.setStrokeColor("#333333")
+    canvas.setLineWidth(0.75)
+    canvas.line(doc.leftMargin, page_height - 2.3 * cm, page_width - doc.rightMargin, page_height - 2.3 * cm)
+
     footer = Paragraph(LETTERHEAD_FOOTER, _footer_style)
-    width, height = footer.wrap(doc.width, doc.bottomMargin)
-    footer.drawOn(canvas, doc.leftMargin, 1.2 * cm)
+    footer.wrap(doc.width, doc.bottomMargin)
+    footer.drawOn(canvas, doc.leftMargin, 1.0 * cm)
+
+    canvas.setStrokeColor("#cccccc")
+    canvas.setLineWidth(0.5)
+    canvas.line(doc.leftMargin, 1.8 * cm, page_width - doc.rightMargin, 1.8 * cm)
+
     canvas.restoreState()
 
 
@@ -43,8 +75,8 @@ def render_text_to_pdf(body_text: str, output_path: str):
     doc = SimpleDocTemplate(
         output_path,
         pagesize=A4,
-        topMargin=2 * cm,
-        bottomMargin=2.5 * cm,
+        topMargin=3.2 * cm,
+        bottomMargin=2.8 * cm,
         leftMargin=2 * cm,
         rightMargin=2 * cm,
     )
@@ -54,7 +86,7 @@ def render_text_to_pdf(body_text: str, output_path: str):
         if text:
             story.append(Paragraph(text, _body_style))
         story.append(Spacer(1, 4))
-    doc.build(story, onFirstPage=_draw_footer, onLaterPages=_draw_footer)
+    doc.build(story, onFirstPage=_draw_letterhead, onLaterPages=_draw_letterhead)
 
 
 def generate_declaration_pdf(name: str) -> str:
@@ -65,6 +97,13 @@ def generate_declaration_pdf(name: str) -> str:
     os.makedirs(config.GENERATED_DIR, exist_ok=True)
     render_text_to_pdf(body_text, output_path)
     return output_path
+
+
+def to_static_url(path: str) -> str:
+    """Convert a file path under static/ into a URL Streamlit can serve directly,
+    for reliable inline PDF preview (browsers block base64 data: URIs in an iframe)."""
+    rel = os.path.relpath(path, "static")
+    return f"app/static/{rel}"
 
 
 def resolve_attachments(attachment_keys: list[str], name: str | None = None) -> list[str]:

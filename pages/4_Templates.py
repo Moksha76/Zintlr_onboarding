@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 
@@ -171,20 +170,20 @@ try:
                         tmp_path = os.path.join(config.GENERATED_DIR, f"_preview_{d.document_key}.pdf")
                         os.makedirs(config.GENERATED_DIR, exist_ok=True)
                         pdf_service.render_text_to_pdf(rendered_text, tmp_path)
-                        with open(tmp_path, "rb") as f:
-                            pdf_bytes = f.read()
-                        b64 = base64.b64encode(pdf_bytes).decode()
+                        url = pdf_service.to_static_url(tmp_path)
+                        st.markdown(f"[Open in new tab]({url})")
                         st.components.v1.html(
-                            f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="500"></iframe>',
+                            f'<iframe src="{url}" width="100%" height="500"></iframe>',
                             height=520,
                         )
-                        st.download_button(
-                            "Download to view",
-                            data=pdf_bytes,
-                            file_name=f"{d.document_key}_preview.pdf",
-                            mime="application/pdf",
-                            key=f"doc_download_{d.document_key}",
-                        )
+                        with open(tmp_path, "rb") as f:
+                            st.download_button(
+                                "Download to view",
+                                data=f.read(),
+                                file_name=f"{d.document_key}_preview.pdf",
+                                mime="application/pdf",
+                                key=f"doc_download_{d.document_key}",
+                            )
                     except Exception as e:
                         st.error(f"PDF generation failed: {e}")
 

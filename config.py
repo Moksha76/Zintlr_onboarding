@@ -67,10 +67,12 @@ JOINING_OFFER_OFFSET_DAYS = -2   # DOJ minus 2
 
 # Paths
 DB_PATH = "database/onboarding.db"
-GENERATED_DIR = "generated"
+# Lives under static/ so Streamlit can serve generated PDFs directly for inline
+# preview (browsers block PDFs embedded as base64 data: URIs in an iframe).
+GENERATED_DIR = "static/generated"
 BACKUP_DIR = "backups"
 LOG_FILE = "logs/activity.log"
-STATIC_ATTACHMENTS_DIR = "documents/static_attachments"
+STATIC_ATTACHMENTS_DIR = "static/static_attachments"
 CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH", "credentials.json")
 GOOGLE_SHEET_URL = os.getenv("GOOGLE_SHEET_URL", "")
 

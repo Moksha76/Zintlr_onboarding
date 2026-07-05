@@ -1,4 +1,3 @@
-import base64
 import os
 
 import streamlit as st
@@ -62,20 +61,20 @@ def show_email_preview(template_key: str, joiner: dict):
                 if st.button(f"Preview {os.path.basename(path)}", key=f"btn_{path}"):
                     st.session_state[preview_key] = not st.session_state.get(preview_key, False)
                 if st.session_state.get(preview_key):
-                    with open(path, "rb") as f:
-                        pdf_bytes = f.read()
-                    b64 = base64.b64encode(pdf_bytes).decode()
+                    url = pdf_service.to_static_url(path)
+                    st.markdown(f"[Open in new tab]({url})")
                     st.components.v1.html(
-                        f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="500"></iframe>',
+                        f'<iframe src="{url}" width="100%" height="500"></iframe>',
                         height=520,
                     )
-                    st.download_button(
-                        "Download to view",
-                        data=pdf_bytes,
-                        file_name=os.path.basename(path),
-                        mime="application/pdf",
-                        key=f"download_{path}",
-                    )
+                    with open(path, "rb") as f:
+                        st.download_button(
+                            "Download to view",
+                            data=f.read(),
+                            file_name=os.path.basename(path),
+                            mime="application/pdf",
+                            key=f"download_{path}",
+                        )
 
     st.markdown("**Add attachment** (optional — attached to this send only)")
     extra_file = st.file_uploader("Attach an additional file", key="extra_attachment")

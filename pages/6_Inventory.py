@@ -17,7 +17,16 @@ st.caption("Kit and T-shirt stock. Levels drop automatically when you hand items
 def _render_item(session, item: Inventory, label: str):
     with st.container(border=True):
         low_stock = item.quantity <= item.threshold
-        st.markdown(f"**{label}**")
+        head_col, reset_col = st.columns([3, 1])
+        with head_col:
+            st.markdown(f"**{label}**")
+        with reset_col:
+            if st.button("Reset to 0", key=f"reset_{item.id}", use_container_width=True):
+                item.quantity = 0
+                item.low_stock_notified = True  # this is an admin reset, not a real depletion — don't alert
+                session.commit()
+                st.rerun()
+
         if low_stock:
             st.markdown(
                 f'<span style="color:#B91C1C; font-weight:700;">⚠ Low stock — {item.quantity} left '

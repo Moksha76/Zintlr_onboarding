@@ -30,9 +30,10 @@ def _render_item(session, item: Inventory, label: str):
         col1, col2, col3 = st.columns([1.2, 1, 1])
         with col1:
             add_qty = st.number_input(
-                "Add stock", min_value=0, step=1, value=0, key=f"add_{item.id}", label_visibility="collapsed"
+                "Add to stock", min_value=0, step=1, value=0, key=f"add_{item.id}"
             )
         with col2:
+            st.write("")
             if st.button("Add", key=f"add_btn_{item.id}", use_container_width=True):
                 if add_qty > 0:
                     item.quantity += add_qty
@@ -42,12 +43,11 @@ def _render_item(session, item: Inventory, label: str):
                     st.rerun()
         with col3:
             new_threshold = st.number_input(
-                "Reorder at",
+                "Low-stock alert at",
                 min_value=0,
                 step=1,
                 value=item.threshold,
                 key=f"threshold_{item.id}",
-                label_visibility="collapsed",
             )
             if new_threshold != item.threshold:
                 item.threshold = new_threshold

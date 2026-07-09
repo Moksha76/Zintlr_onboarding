@@ -1,6 +1,6 @@
 import os
 
-from reportlab.lib.colors import Color, HexColor
+from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -43,20 +43,14 @@ _footer_style = ParagraphStyle(
 )
 
 
-def _draw_gradient_line(canvas, x1, x2, y, color_start, color_end, width=1.5, segments=80):
-    c1, c2 = HexColor(color_start), HexColor(color_end)
-    seg_width = (x2 - x1) / segments
-    canvas.setLineWidth(width)
-    for i in range(segments):
-        t = i / (segments - 1)
-        blended = Color(
-            c1.red + (c2.red - c1.red) * t,
-            c1.green + (c2.green - c1.green) * t,
-            c1.blue + (c2.blue - c1.blue) * t,
-        )
-        canvas.setStrokeColor(blended)
-        seg_x1 = x1 + i * seg_width
-        canvas.line(seg_x1, y, seg_x1 + seg_width + 0.5, y)
+def _draw_gradient_line(canvas, x1, x2, y, color_start, color_end, width=1.5):
+    """A perfectly smooth native PDF gradient line (not hand-segmented, which can look choppy)."""
+    canvas.saveState()
+    path = canvas.beginPath()
+    path.rect(x1, y - width / 2, x2 - x1, width)
+    canvas.clipPath(path, stroke=0)
+    canvas.linearGradient(x1, y, x2, y, [HexColor(color_start), HexColor(color_end)])
+    canvas.restoreState()
 
 
 def _draw_letterhead(canvas, doc):
@@ -96,12 +90,14 @@ def _draw_letterhead(canvas, doc):
     )
 
     footer = Paragraph(LETTERHEAD_FOOTER, _footer_style)
-    footer.wrap(doc.width, doc.bottomMargin)
-    footer.drawOn(canvas, doc.leftMargin, 1.0 * cm)
+    footer_y = 1.0 * cm
+    _, footer_height = footer.wrap(doc.width, doc.bottomMargin)
+    footer.drawOn(canvas, doc.leftMargin, footer_y)
 
+    line_y = footer_y + footer_height + 0.2 * cm
     canvas.setStrokeColor("#999999")
     canvas.setLineWidth(0.5)
-    canvas.line(doc.leftMargin, 1.8 * cm, right_x, 1.8 * cm)
+    canvas.line(doc.leftMargin, line_y, right_x, line_y)
 
     canvas.restoreState()
 

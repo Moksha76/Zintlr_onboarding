@@ -8,7 +8,16 @@ SENDER_PHONE = "(+91) 6366940993"
 HR_ADMIN_EMAIL = "hradmin@zintlr.com"
 NISHA_EMAIL = os.getenv("NISHA_EMAIL", "")   # Set in .env once confirmed
 
-# Microsoft Graph (Outlook sending) — set in .env once the Azure App Registration is done
+# SMTP (Outlook sending via an app password) — set in .env once IT enables SMTP
+# AUTH for the mailbox and you generate an app password. Preferred over Graph
+# when set, since it needs no Azure app registration at all.
+SMTP_HOST = "smtp.office365.com"
+SMTP_PORT = 587
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", SENDER_EMAIL)
+SMTP_APP_PASSWORD = os.getenv("SMTP_APP_PASSWORD", "")
+
+# Microsoft Graph (Outlook sending) — set in .env once the Azure App Registration is done.
+# Only used as a fallback if SMTP_APP_PASSWORD isn't set.
 GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID", "")
 GRAPH_TENANT_ID = os.getenv("GRAPH_TENANT_ID", "")
 GRAPH_TOKEN_CACHE_PATH = "graph_token_cache.json"

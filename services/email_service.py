@@ -1,8 +1,12 @@
 import base64
 import mimetypes
 import os
+import smtplib
 import threading
 import time
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import requests
 
@@ -37,6 +41,42 @@ def send_via_outlook(to: str, cc: str, subject: str, body_html: str, attachments
 
 def _split_addresses(value: str) -> list[str]:
     return [addr.strip() for addr in (value or "").split(",") if addr.strip()]
+
+
+def send_via_smtp(to: str, cc: str, subject: str, body_html: str, attachments: list[str] | None = None):
+    """Send one email via Outlook's SMTP AUTH endpoint using a mailbox app
+    password. No Azure app registration needed — just IT enabling SMTP AUTH
+    for the mailbox and an app password generated in the M365 account portal."""
+    import config
+
+    if not config.SMTP_APP_PASSWORD:
+        return False, "SMTP_APP_PASSWORD not set in .env yet."
+
+    to_list = _split_addresses(to)
+    cc_list = _split_addresses(cc)
+
+    msg = MIMEMultipart()
+    msg["From"] = config.SMTP_USERNAME
+    msg["To"] = ", ".join(to_list)
+    if cc_list:
+        msg["Cc"] = ", ".join(cc_list)
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body_html, "html"))
+
+    for path in attachments or []:
+        with open(path, "rb") as f:
+            part = MIMEApplication(f.read(), Name=os.path.basename(path))
+        part["Content-Disposition"] = f'attachment; filename="{os.path.basename(path)}"'
+        msg.attach(part)
+
+    try:
+        with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT, timeout=30) as server:
+            server.starttls()
+            server.login(config.SMTP_USERNAME, config.SMTP_APP_PASSWORD)
+            server.sendmail(config.SMTP_USERNAME, to_list + cc_list, msg.as_string())
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 
 def send_via_graph(to: str, cc: str, subject: str, body_html: str, attachments: list[str] | None = None):
@@ -89,6 +129,8 @@ def _pick_send_function():
     import config
     from services import graph_auth
 
+    if config.SMTP_APP_PASSWORD:
+        return send_via_smtp
     if config.GRAPH_CLIENT_ID and graph_auth.get_connected_account():
         return send_via_graph
     return send_via_outlook
@@ -104,8 +146,8 @@ def send_email(
     template_key: str | None = None,
 ):
     """Send an email with one automatic retry after 30 seconds on failure, logging the outcome.
-    Uses Microsoft Graph if Outlook is connected via the device-code flow, otherwise falls
-    back to the desktop Outlook COM automation."""
+    Prefers SMTP (app password) if configured, then Microsoft Graph if connected via the
+    device-code flow, otherwise falls back to the desktop Outlook COM automation."""
     send_fn = _pick_send_function()
     success, error = send_fn(to, cc, subject, body_html, attachment_paths)
 

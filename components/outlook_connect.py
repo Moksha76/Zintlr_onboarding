@@ -5,12 +5,20 @@ from services import graph_auth
 
 
 def render_outlook_connect_section():
+    if config.SMTP_APP_PASSWORD:
+        with st.container(border=True):
+            st.subheader("Connect Outlook")
+            st.success(f"Connected via SMTP as {config.SMTP_USERNAME}")
+        return
+
     if not config.GRAPH_CLIENT_ID or not config.GRAPH_TENANT_ID:
         with st.container(border=True):
             st.subheader("Connect Outlook")
             st.caption(
-                "Not set up yet — add GRAPH_CLIENT_ID and GRAPH_TENANT_ID to your .env file "
-                "once the Azure App Registration is ready, then restart the app."
+                "Not set up yet — either add SMTP_USERNAME and SMTP_APP_PASSWORD to your .env "
+                "(once IT enables SMTP AUTH for your mailbox and you generate an app password), "
+                "or add GRAPH_CLIENT_ID and GRAPH_TENANT_ID once an Azure App Registration is ready. "
+                "Then restart the app."
             )
         return
 

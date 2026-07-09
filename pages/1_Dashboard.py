@@ -4,7 +4,7 @@ import config
 from components.email_preview import show_email_preview
 from components.theme import inject_theme, stage_badge_html
 from database.db import SessionLocal, init_db
-from database.models import ActivityLog, Joiner
+from database.models import ActivityLog, Inventory, Joiner
 from services import stage_service
 from services.scheduler import start_scheduler
 
@@ -57,6 +57,13 @@ try:
         st.error(f"Sheet sync failed — {last_sync.details}")
     elif last_sync and last_sync.tone == "warn":
         st.warning(last_sync.details)
+
+    low_stock_items = session.query(Inventory).filter(Inventory.quantity <= Inventory.threshold).all()
+    if low_stock_items:
+        labels = [
+            "Onboarding kit" if item.item_type == "kit" else f"T-shirt ({item.size})" for item in low_stock_items
+        ]
+        st.warning(f"Low stock: {', '.join(labels)} — check the Inventory page.")
 
     all_joiners = session.query(Joiner).all()
 

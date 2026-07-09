@@ -1,5 +1,6 @@
 import os
 
+from reportlab.lib.colors import Color, HexColor
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -42,6 +43,22 @@ _footer_style = ParagraphStyle(
 )
 
 
+def _draw_gradient_line(canvas, x1, x2, y, color_start, color_end, width=1.5, segments=80):
+    c1, c2 = HexColor(color_start), HexColor(color_end)
+    seg_width = (x2 - x1) / segments
+    canvas.setLineWidth(width)
+    for i in range(segments):
+        t = i / (segments - 1)
+        blended = Color(
+            c1.red + (c2.red - c1.red) * t,
+            c1.green + (c2.green - c1.green) * t,
+            c1.blue + (c2.blue - c1.blue) * t,
+        )
+        canvas.setStrokeColor(blended)
+        seg_x1 = x1 + i * seg_width
+        canvas.line(seg_x1, y, seg_x1 + seg_width + 0.5, y)
+
+
 def _draw_letterhead(canvas, doc):
     canvas.saveState()
     page_width, page_height = A4
@@ -57,7 +74,6 @@ def _draw_letterhead(canvas, doc):
             width=logo_size,
             height=logo_size,
             preserveAspectRatio=True,
-            mask="auto",
         )
         x += logo_size + 0.3 * cm
 
@@ -75,16 +91,16 @@ def _draw_letterhead(canvas, doc):
     canvas.drawRightString(right_x, page_height - 1.75 * cm, LETTERHEAD_WEBSITE)
     canvas.drawRightString(right_x, page_height - 2.1 * cm, LETTERHEAD_LOCATION)
 
-    canvas.setStrokeColor(LETTERHEAD_GOLD)
-    canvas.setLineWidth(1.5)
-    canvas.line(doc.leftMargin, page_height - 2.4 * cm, right_x, page_height - 2.4 * cm)
+    _draw_gradient_line(
+        canvas, doc.leftMargin, right_x, page_height - 2.4 * cm, LETTERHEAD_PURPLE, LETTERHEAD_GOLD
+    )
 
     footer = Paragraph(LETTERHEAD_FOOTER, _footer_style)
     footer.wrap(doc.width, doc.bottomMargin)
     footer.drawOn(canvas, doc.leftMargin, 1.0 * cm)
 
-    canvas.setStrokeColor(LETTERHEAD_GOLD)
-    canvas.setLineWidth(1.5)
+    canvas.setStrokeColor("#999999")
+    canvas.setLineWidth(0.5)
     canvas.line(doc.leftMargin, 1.8 * cm, right_x, 1.8 * cm)
 
     canvas.restoreState()

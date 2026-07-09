@@ -4,6 +4,7 @@ import streamlit as st
 
 import config
 from components.email_preview import show_email_preview
+from components.outlook_connect import render_outlook_connect_section
 from components.theme import inject_theme, stage_badge_html
 from database.db import SessionLocal, init_db
 from database.models import ActivityLog, Inventory, Joiner
@@ -15,6 +16,9 @@ start_scheduler()
 inject_theme()
 
 st.title("Dashboard")
+
+render_outlook_connect_section()
+st.write("")
 
 _CHIP_COLORS = {
     "amber": "#B45309",

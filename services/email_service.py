@@ -1,5 +1,10 @@
+import base64
+import mimetypes
+import os
 import threading
 import time
+
+import requests
 
 from database.db import SessionLocal
 from database.models import EmailLog
@@ -30,6 +35,65 @@ def send_via_outlook(to: str, cc: str, subject: str, body_html: str, attachments
         return False, str(e)
 
 
+def _split_addresses(value: str) -> list[str]:
+    return [addr.strip() for addr in (value or "").split(",") if addr.strip()]
+
+
+def send_via_graph(to: str, cc: str, subject: str, body_html: str, attachments: list[str] | None = None):
+    """Send one email via Microsoft Graph, using the Outlook account connected
+    through the device-code sign-in flow. Works without desktop Outlook."""
+    from services import graph_auth
+
+    token = graph_auth.get_access_token_silent()
+    if not token:
+        return False, 'Outlook is not connected — go to the Dashboard and click "Connect Outlook".'
+
+    message = {
+        "subject": subject,
+        "body": {"contentType": "HTML", "content": body_html},
+        "toRecipients": [{"emailAddress": {"address": addr}} for addr in _split_addresses(to)],
+        "ccRecipients": [{"emailAddress": {"address": addr}} for addr in _split_addresses(cc)],
+    }
+
+    file_attachments = []
+    for path in attachments or []:
+        with open(path, "rb") as f:
+            content = f.read()
+        content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        file_attachments.append(
+            {
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                "name": os.path.basename(path),
+                "contentType": content_type,
+                "contentBytes": base64.b64encode(content).decode("ascii"),
+            }
+        )
+    if file_attachments:
+        message["attachments"] = file_attachments
+
+    try:
+        resp = requests.post(
+            "https://graph.microsoft.com/v1.0/me/sendMail",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"message": message, "saveToSentItems": "true"},
+            timeout=30,
+        )
+        if resp.status_code == 202:
+            return True, None
+        return False, f"Graph API error {resp.status_code}: {resp.text[:300]}"
+    except requests.RequestException as e:
+        return False, str(e)
+
+
+def _pick_send_function():
+    import config
+    from services import graph_auth
+
+    if config.GRAPH_CLIENT_ID and graph_auth.get_connected_account():
+        return send_via_graph
+    return send_via_outlook
+
+
 def send_email(
     to: str,
     cc: str,
@@ -39,12 +103,15 @@ def send_email(
     joiner_id: int | None = None,
     template_key: str | None = None,
 ):
-    """Send an email with one automatic retry after 30 seconds on failure, logging the outcome."""
-    success, error = send_via_outlook(to, cc, subject, body_html, attachment_paths)
+    """Send an email with one automatic retry after 30 seconds on failure, logging the outcome.
+    Uses Microsoft Graph if Outlook is connected via the device-code flow, otherwise falls
+    back to the desktop Outlook COM automation."""
+    send_fn = _pick_send_function()
+    success, error = send_fn(to, cc, subject, body_html, attachment_paths)
 
     if not success:
         time.sleep(30)
-        success, error = send_via_outlook(to, cc, subject, body_html, attachment_paths)
+        success, error = send_fn(to, cc, subject, body_html, attachment_paths)
 
     session = SessionLocal()
     try:

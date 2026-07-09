@@ -1,5 +1,6 @@
 .env
 credentials.json
+graph_token_cache.json
 static/generated/
 backups/
 *.db

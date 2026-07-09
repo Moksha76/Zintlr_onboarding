@@ -8,6 +8,12 @@ SENDER_PHONE = "(+91) 6366940993"
 HR_ADMIN_EMAIL = "hradmin@zintlr.com"
 NISHA_EMAIL = os.getenv("NISHA_EMAIL", "")   # Set in .env once confirmed
 
+# Microsoft Graph (Outlook sending) — set in .env once the Azure App Registration is done
+GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID", "")
+GRAPH_TENANT_ID = os.getenv("GRAPH_TENANT_ID", "")
+GRAPH_TOKEN_CACHE_PATH = "graph_token_cache.json"
+GRAPH_SCOPES = ["Mail.Send", "User.Read"]
+
 # Standard signature appended to every email template. Centralized so the phone
 # number/contact details can never drift between templates.
 SIGNATURE_BLOCK = (

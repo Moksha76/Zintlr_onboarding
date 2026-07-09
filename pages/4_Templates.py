@@ -171,11 +171,7 @@ try:
                         os.makedirs(config.GENERATED_DIR, exist_ok=True)
                         pdf_service.render_text_to_pdf(rendered_text, tmp_path)
                         url = pdf_service.to_static_url(tmp_path)
-                        st.markdown(f"[Open in new tab]({url})")
-                        st.components.v1.html(
-                            f'<iframe src="{url}" width="100%" height="500"></iframe>',
-                            height=520,
-                        )
+                        st.markdown(f"\U0001F517 [Open in new tab]({url})")
                         with open(tmp_path, "rb") as f:
                             st.download_button(
                                 "Download to view",

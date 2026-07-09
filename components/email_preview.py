@@ -62,11 +62,7 @@ def show_email_preview(template_key: str, joiner: dict):
                     st.session_state[preview_key] = not st.session_state.get(preview_key, False)
                 if st.session_state.get(preview_key):
                     url = pdf_service.to_static_url(path)
-                    st.markdown(f"[Open in new tab]({url})")
-                    st.components.v1.html(
-                        f'<iframe src="{url}" width="100%" height="500"></iframe>',
-                        height=520,
-                    )
+                    st.markdown(f"\U0001F517 [Open in new tab]({url})")
                     with open(path, "rb") as f:
                         st.download_button(
                             "Download to view",

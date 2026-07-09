@@ -143,29 +143,37 @@ try:
             allowed_stages = enabled_stages_map.get(template_key)
             is_enabled = allowed_stages is None or joiner.current_stage in allowed_stages
             with cols[i % 3]:
-                if st.button(label, key=f"send_{template_key}", disabled=not is_enabled):
+                if st.button(
+                    label, key=f"send_{template_key}", disabled=not is_enabled, use_container_width=True
+                ):
                     show_email_preview(template_key, _joiner_dict(joiner))
 
         st.divider()
         st.subheader("Stage actions")
         action_cols = st.columns(4)
         with action_cols[0]:
-            if st.button("Mark BG received", disabled=joiner.current_stage != "BG_SENT"):
+            if st.button(
+                "Mark BG received", disabled=joiner.current_stage != "BG_SENT", use_container_width=True
+            ):
                 stage_service.mark_bg_received(joiner.id)
                 st.rerun()
         with action_cols[1]:
             if st.button(
-                "Simulate HR offer confirmation (test)", disabled=joiner.current_stage != "BG_RECEIVED"
+                "Simulate HR offer confirmation (test)",
+                disabled=joiner.current_stage != "BG_RECEIVED",
+                use_container_width=True,
             ):
                 stage_service.simulate_offer_confirmation(joiner.id)
                 st.rerun()
         with action_cols[2]:
-            if st.button("Mark DB received", disabled=joiner.current_stage != "DB_SENT"):
+            if st.button(
+                "Mark DB received", disabled=joiner.current_stage != "DB_SENT", use_container_width=True
+            ):
                 stage_service.mark_db_received(joiner.id)
                 st.rerun()
         with action_cols[3]:
             can_mark_joined = joiner.current_stage == "ONBOARDING" and joiner.doj and joiner.doj <= date.today()
-            if st.button("Mark joined", disabled=not can_mark_joined):
+            if st.button("Mark joined", disabled=not can_mark_joined, use_container_width=True):
                 stage_service.mark_joined(joiner.id)
                 st.rerun()
 

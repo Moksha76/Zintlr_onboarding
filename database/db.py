@@ -284,8 +284,20 @@ def _seed_inventory(session):
     if session.query(Inventory).count() > 0:
         return
     session.add(Inventory(item_type="kit", size=None, quantity=0, threshold=config.INVENTORY_THRESHOLD))
-    for size in ["S", "M", "L", "XL"]:
+    for size in config.TSHIRT_SIZES:
         session.add(Inventory(item_type="tshirt", size=size, quantity=0, threshold=config.INVENTORY_THRESHOLD))
+    session.commit()
+
+
+def _ensure_tshirt_sizes(session):
+    """Add inventory rows for any size in config.TSHIRT_SIZES that a
+    database seeded before that size existed is still missing."""
+    existing_sizes = {
+        row.size for row in session.query(Inventory).filter(Inventory.item_type == "tshirt").all()
+    }
+    for size in config.TSHIRT_SIZES:
+        if size not in existing_sizes:
+            session.add(Inventory(item_type="tshirt", size=size, quantity=0, threshold=config.INVENTORY_THRESHOLD))
     session.commit()
 
 
@@ -331,5 +343,6 @@ def init_db():
         _seed_email_templates(session)
         _seed_document_templates(session)
         _seed_inventory(session)
+        _ensure_tshirt_sizes(session)
     finally:
         session.close()

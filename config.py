@@ -56,6 +56,7 @@ STAGE_COLORS = {
 
 # Inventory
 INVENTORY_THRESHOLD = 3
+TSHIRT_SIZES = ["S", "M", "L", "XL", "XXL"]
 
 # Scheduler
 SHEET_POLL_MINUTES = 5

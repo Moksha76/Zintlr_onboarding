@@ -1,3 +1,4 @@
+import threading
 import time
 
 from database.db import SessionLocal
@@ -66,3 +67,21 @@ def send_email(
         session.close()
 
     return success, error
+
+
+def send_low_stock_alert(item_label: str, quantity: int, threshold: int):
+    """Notify HR by email that an inventory item has hit its reorder point.
+    Fires in a background thread so the action that triggered it (e.g. a
+    checklist click) never blocks waiting on Outlook's retry."""
+    import config
+
+    subject = f"Low stock alert — {item_label}"
+    body_html = (
+        f"<p>{item_label} is running low: <b>{quantity}</b> left "
+        f"(reorder threshold: {threshold}).</p><p>Please restock soon.</p>"
+    )
+    threading.Thread(
+        target=send_email,
+        kwargs=dict(to=config.SENDER_EMAIL, cc="", subject=subject, body_html=body_html),
+        daemon=True,
+    ).start()

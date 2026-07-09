@@ -7,7 +7,7 @@ from components.email_preview import show_email_preview
 from components.theme import inject_theme, stage_badge_html
 from database.db import SessionLocal, init_db
 from database.models import ActivityLog, EmailTemplate, Inventory, Joiner, ScheduledEmail
-from services import scheduled_email_service, stage_service
+from services import email_service, scheduled_email_service, stage_service
 from services.scheduler import start_scheduler
 
 init_db()
@@ -76,6 +76,9 @@ def _decrement_inventory(session, item_type: str, label: str, size: str | None =
                 tone="danger",
             )
         )
+        if not inv.low_stock_notified:
+            email_service.send_low_stock_alert(label, inv.quantity, inv.threshold)
+            inv.low_stock_notified = True
         session.commit()
         return
 
@@ -93,6 +96,9 @@ def _decrement_inventory(session, item_type: str, label: str, size: str | None =
                 tone="warn",
             )
         )
+        if not inv.low_stock_notified:
+            email_service.send_low_stock_alert(label, inv.quantity, inv.threshold)
+            inv.low_stock_notified = True
     session.commit()
 
 
@@ -318,9 +324,9 @@ try:
 
             st.selectbox(
                 "T-shirt size",
-                options=["S", "M", "L", "XL"],
-                index=["S", "M", "L", "XL"].index(joiner.tshirt_size)
-                if joiner.tshirt_size in ["S", "M", "L", "XL"]
+                options=config.TSHIRT_SIZES,
+                index=config.TSHIRT_SIZES.index(joiner.tshirt_size)
+                if joiner.tshirt_size in config.TSHIRT_SIZES
                 else 1,
                 key=f"tshirt_size_{joiner.id}",
                 on_change=_on_tshirt_size_change,

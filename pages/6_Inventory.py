@@ -1,5 +1,6 @@
 import streamlit as st
 
+import config
 from components.theme import inject_theme
 from database.db import SessionLocal, init_db
 from database.models import Inventory
@@ -35,6 +36,8 @@ def _render_item(session, item: Inventory, label: str):
             if st.button("Add", key=f"add_btn_{item.id}", use_container_width=True):
                 if add_qty > 0:
                     item.quantity += add_qty
+                    if item.quantity > item.threshold:
+                        item.low_stock_notified = False
                     session.commit()
                     st.rerun()
         with col3:
@@ -48,6 +51,8 @@ def _render_item(session, item: Inventory, label: str):
             )
             if new_threshold != item.threshold:
                 item.threshold = new_threshold
+                if item.quantity > item.threshold:
+                    item.low_stock_notified = False
                 session.commit()
                 st.rerun()
 
@@ -66,7 +71,7 @@ try:
         .order_by(Inventory.size)
         .all()
     )
-    size_order = {"S": 0, "M": 1, "L": 2, "XL": 3}
+    size_order = {size: i for i, size in enumerate(config.TSHIRT_SIZES)}
     tshirts.sort(key=lambda t: size_order.get(t.size, 99))
     cols = st.columns(2)
     for i, tshirt in enumerate(tshirts):

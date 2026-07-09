@@ -158,9 +158,10 @@ class Inventory(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     item_type: Mapped[str] = mapped_column(Text, nullable=False)  # kit / tshirt
-    size: Mapped[str | None] = mapped_column(Text, nullable=True)  # null for kits, S/M/L/XL for tshirts
+    size: Mapped[str | None] = mapped_column(Text, nullable=True)  # null for kits, S/M/L/XL/XXL for tshirts
     quantity: Mapped[int] = mapped_column(Integer, default=0)
     threshold: Mapped[int] = mapped_column(Integer, default=3)
+    low_stock_notified: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 

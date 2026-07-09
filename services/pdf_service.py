@@ -120,9 +120,13 @@ def render_text_to_pdf(body_text: str, output_path: str):
     doc.build(story, onFirstPage=_draw_letterhead, onLaterPages=_draw_letterhead)
 
 
-def generate_declaration_pdf(name: str) -> str:
-    """Render the BG declaration document template for `name` and save it as a PDF."""
-    body_text = render_document("bg_declaration", name=name)
+def generate_declaration_pdf(name: str, **extra) -> str:
+    """Render the BG declaration document template for `name` and save it as a PDF.
+
+    `extra` may include designation, team_name, doj, uan — same fields available
+    to the email body — so the document template can reference them too.
+    """
+    body_text = render_document("bg_declaration", name=name, **extra)
     name_slug = name.lower().replace(" ", "_").strip()
     output_path = os.path.join(config.GENERATED_DIR, f"declaration_{name_slug}.pdf")
     os.makedirs(config.GENERATED_DIR, exist_ok=True)
@@ -137,12 +141,12 @@ def to_static_url(path: str) -> str:
     return f"app/static/{rel}"
 
 
-def resolve_attachments(attachment_keys: list[str], name: str | None = None) -> list[str]:
+def resolve_attachments(attachment_keys: list[str], name: str | None = None, **extra) -> list[str]:
     """Turn logical attachment keys from an email template into real file paths."""
     paths = []
     for key in attachment_keys:
         if key == "declaration":
-            paths.append(generate_declaration_pdf(name))
+            paths.append(generate_declaration_pdf(name, **extra))
         elif key in config.STATIC_ATTACHMENTS:
             paths.append(config.STATIC_ATTACHMENTS[key])
         else:

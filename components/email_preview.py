@@ -54,7 +54,9 @@ def show_email_preview(template_key: str, joiner: dict):
         if bg_missing_deadline:
             st.warning("Enter the BG deadline date above to generate the attachment.")
         else:
-            attachment_paths = pdf_service.resolve_attachments(rendered.attachment_keys, name=joiner["name"])
+            attachment_paths = pdf_service.resolve_attachments(
+                rendered.attachment_keys, name=joiner["name"], **context
+            )
             for path in attachment_paths:
                 st.write(f"\U0001F4CE {os.path.basename(path)}")
                 preview_key = f"show_preview_{path}"

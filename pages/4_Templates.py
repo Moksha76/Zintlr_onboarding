@@ -154,13 +154,19 @@ try:
                 new_body = st.text_area(
                     "Body text", value=d.body_text, height=300, key=f"doc_body_{d.document_key}"
                 )
+                st.caption(
+                    "Available variables: {{ name }}, {{ designation }}, {{ team_name }}, {{ doj }}, "
+                    "{{ uan }}, {{ links.* }}, {{ signature }}"
+                )
                 test_name = st.text_input(
                     "Test render with name", value="Test User", key=f"doc_test_name_{d.document_key}"
                 )
+                doc_test_context = dict(_SAMPLE_CONTEXT)
+                doc_test_context["name"] = test_name
 
                 if st.button("Test render", key=f"doc_test_render_{d.document_key}"):
                     try:
-                        rendered_text = Template(new_body).render(name=test_name)
+                        rendered_text = Template(new_body).render(**doc_test_context)
                         st.success("Rendered without errors.")
                         st.text(rendered_text)
                     except Exception as e:
@@ -168,7 +174,7 @@ try:
 
                 if st.button("Preview as PDF", key=f"doc_pdf_{d.document_key}"):
                     try:
-                        rendered_text = Template(new_body).render(name=test_name)
+                        rendered_text = Template(new_body).render(**doc_test_context)
                         tmp_path = os.path.join(config.GENERATED_DIR, f"_preview_{d.document_key}.pdf")
                         os.makedirs(config.GENERATED_DIR, exist_ok=True)
                         pdf_service.render_text_to_pdf(rendered_text, tmp_path)

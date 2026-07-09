@@ -98,7 +98,10 @@ try:
 
     for j in visible:
         col_name, col_desig, col_doj, col_stage, col_action = st.columns([2.5, 1.5, 1.3, 1.5, 2.2])
-        col_name.write(j.full_name)
+        with col_name:
+            if st.button(j.full_name, key=f"open_{j.id}"):
+                st.session_state["selected_joiner_id"] = j.id
+                st.switch_page("pages/3_Candidate_Detail.py")
         col_desig.write(j.designation)
         col_doj.write(j.doj.strftime("%d/%m/%Y") if j.doj else "-")
         col_stage.markdown(stage_chip(j.current_stage), unsafe_allow_html=True)

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import streamlit as st
 
 import config
@@ -57,6 +59,22 @@ try:
         st.error(f"Sheet sync failed — {last_sync.details}")
     elif last_sync and last_sync.tone == "warn":
         st.warning(last_sync.details)
+
+    recent_syncs = (
+        session.query(ActivityLog)
+        .filter(ActivityLog.event_type == "sheet_sync", ActivityLog.tone == "ok")
+        .order_by(ActivityLog.timestamp.desc())
+        .limit(2)
+        .all()
+    )
+    if len(recent_syncs) == 2:
+        gap = recent_syncs[0].timestamp - recent_syncs[1].timestamp
+        if gap > timedelta(minutes=config.SHEET_POLL_MINUTES * 2):
+            st.info(
+                f"The app looks like it was offline from {recent_syncs[1].timestamp.strftime('%d/%m %H:%M')} "
+                f"to {recent_syncs[0].timestamp.strftime('%d/%m %H:%M')} — sheet sync and scheduled sends have "
+                f"caught up automatically now that it's running again."
+            )
 
     low_stock_items = session.query(Inventory).filter(Inventory.quantity <= Inventory.threshold).all()
     if low_stock_items:

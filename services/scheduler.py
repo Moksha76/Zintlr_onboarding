@@ -20,7 +20,7 @@ def start_scheduler():
 
         from apscheduler.schedulers.background import BackgroundScheduler
 
-        from services import scheduled_email_service, sheet_sync
+        from services import backup_service, scheduled_email_service, sheet_sync
 
         _scheduler = BackgroundScheduler()
         _scheduler.add_job(
@@ -38,6 +38,14 @@ def start_scheduler():
             id="scheduled_email_check",
             replace_existing=True,
             next_run_time=datetime.now(),
+        )
+        _scheduler.add_job(
+            backup_service.backup_database,
+            "interval",
+            minutes=1440,  # once a day; the job itself skips if today's backup already exists
+            id="daily_backup",
+            replace_existing=True,
+            next_run_time=datetime.now(),  # attempt on every startup too, in case the laptop was off at the usual time
         )
         try:
             _scheduler.start()

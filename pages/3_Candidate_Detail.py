@@ -53,14 +53,47 @@ def _joiner_dict(j: Joiner) -> dict:
     )
 
 
-def _decrement_inventory(session, item_type: str, size: str | None = None):
+def _decrement_inventory(session, item_type: str, label: str, size: str | None = None):
+    """Decrement stock for a handed-over item and flag HR immediately if stock
+    is already out, or drops to/below the reorder threshold as a result."""
     query = session.query(Inventory).filter(Inventory.item_type == item_type)
     if size:
         query = query.filter(Inventory.size == size)
     inv = query.first()
-    if inv and inv.quantity > 0:
-        inv.quantity -= 1
+    if not inv:
+        return
+
+    if inv.quantity <= 0:
+        st.session_state["inventory_alert"] = (
+            "error",
+            f"{label} is not available — 0 in stock. Marked as handed over anyway; please restock.",
+        )
+        session.add(
+            ActivityLog(
+                event_type="inventory_alert",
+                joiner_id=None,
+                details=f"{label} handed over with 0 in stock.",
+                tone="danger",
+            )
+        )
         session.commit()
+        return
+
+    inv.quantity -= 1
+    if inv.quantity <= inv.threshold:
+        st.session_state["inventory_alert"] = (
+            "warning",
+            f"{label} stock is low — {inv.quantity} left (reorder at {inv.threshold}).",
+        )
+        session.add(
+            ActivityLog(
+                event_type="inventory_alert",
+                joiner_id=None,
+                details=f"{label} stock low after handover — {inv.quantity} left.",
+                tone="warn",
+            )
+        )
+    session.commit()
 
 
 def _on_checkbox_change(joiner_id: int, field: str, timestamp_field: str, key: str):
@@ -74,7 +107,7 @@ def _on_kit_change(joiner_id: int, key: str):
     if new_value:
         session = SessionLocal()
         try:
-            _decrement_inventory(session, "kit")
+            _decrement_inventory(session, "kit", "Onboarding kit")
         finally:
             session.close()
 
@@ -89,7 +122,7 @@ def _on_tshirt_change(joiner_id: int, size_key: str, key: str):
             joiner = session.get(Joiner, joiner_id)
             joiner.tshirt_size = size
             session.commit()
-            _decrement_inventory(session, "tshirt", size)
+            _decrement_inventory(session, "tshirt", f"T-shirt ({size})", size=size)
         finally:
             session.close()
 
@@ -158,6 +191,11 @@ try:
             st.markdown(f"### {joiner.full_name}")
             st.caption(f"{joiner.candidate_email}  ·  {joiner.designation}  ·  {doj_text}")
             st.markdown(stage_badge_html(joiner.current_stage.replace("_", " "), badge_color), unsafe_allow_html=True)
+
+    inventory_alert = st.session_state.pop("inventory_alert", None)
+    if inventory_alert:
+        level, message = inventory_alert
+        getattr(st, level)(message)
 
     st.write("")
 

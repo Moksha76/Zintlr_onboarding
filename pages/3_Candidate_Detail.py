@@ -6,8 +6,8 @@ import config
 from components.email_preview import show_email_preview
 from components.theme import inject_theme, stage_badge_html
 from database.db import SessionLocal, init_db
-from database.models import ActivityLog, Inventory, Joiner
-from services import stage_service
+from database.models import ActivityLog, EmailTemplate, Inventory, Joiner, ScheduledEmail
+from services import scheduled_email_service, stage_service
 from services.scheduler import start_scheduler
 
 init_db()
@@ -344,7 +344,28 @@ try:
         st.write("")
         with st.container(border=True):
             st.subheader("Scheduled emails")
-            st.caption("Will show the pre-onboarding schedule once Phase 5 is built.")
+            scheduled_rows = (
+                session.query(ScheduledEmail)
+                .filter(ScheduledEmail.joiner_id == joiner.id)
+                .order_by(ScheduledEmail.scheduled_for)
+                .all()
+            )
+            if not scheduled_rows:
+                st.caption("No pre-onboarding emails scheduled yet — set them up on the Scheduled page.")
+            else:
+                display_names = {
+                    t.template_key: t.display_name
+                    for t in session.query(EmailTemplate).filter(EmailTemplate.active.is_(True)).all()
+                }
+                status_emoji = {"scheduled": "🕒", "sent": "🟢", "failed": "🔴", "cancelled": "⚪"}
+                for row in scheduled_rows:
+                    label = display_names.get(row.template_key, row.template_key)
+                    when = row.scheduled_for.strftime("%d/%m/%Y %H:%M")
+                    st.write(f"{status_emoji.get(row.status, '⚪')} {label} — {when} ({row.status})")
+                    if row.status == "scheduled":
+                        if st.button("Cancel", key=f"cancel_sched_{row.id}"):
+                            scheduled_email_service.cancel_scheduled_email(row.id)
+                            st.rerun()
 
     st.write("")
     with st.container(border=True):

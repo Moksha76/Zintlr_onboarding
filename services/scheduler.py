@@ -20,7 +20,7 @@ def start_scheduler():
 
         from apscheduler.schedulers.background import BackgroundScheduler
 
-        from services import sheet_sync
+        from services import scheduled_email_service, sheet_sync
 
         _scheduler = BackgroundScheduler()
         _scheduler.add_job(
@@ -30,6 +30,14 @@ def start_scheduler():
             id="sheet_sync",
             replace_existing=True,
             next_run_time=datetime.now(),  # run once immediately on startup, then every N minutes
+        )
+        _scheduler.add_job(
+            scheduled_email_service.process_due_scheduled_emails,
+            "interval",
+            minutes=config.SHEET_POLL_MINUTES,
+            id="scheduled_email_check",
+            replace_existing=True,
+            next_run_time=datetime.now(),
         )
         try:
             _scheduler.start()

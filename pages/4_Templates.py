@@ -8,11 +8,13 @@ import config
 from components.email_preview import show_email_preview
 from database.db import SessionLocal, init_db
 from database.models import DocumentTemplate, EmailTemplate, Joiner
+from components.theme import inject_theme
 from services import pdf_service
 from services.scheduler import start_scheduler
 
 init_db()
 start_scheduler()
+inject_theme()
 
 st.title("Templates")
 

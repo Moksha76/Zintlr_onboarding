@@ -3,21 +3,27 @@ from datetime import timedelta
 import streamlit as st
 
 import config
+from components.theme import inject_theme
 from database.db import SessionLocal, init_db
 from database.models import ActivityLog, Joiner
 from services.scheduler import start_scheduler
 
 init_db()
 start_scheduler()
+inject_theme()
 
 st.title("Add Joiner")
+st.caption("Add a candidate manually. HR can also add candidates directly from the shared sheet.")
+st.write("")
 
-with st.form("add_joiner_form", clear_on_submit=False):
-    full_name = st.text_input("Full name")
-    candidate_email = st.text_input("Candidate email")
-    designation = st.selectbox("Designation", options=[""] + config.DESIGNATIONS)
-    doj = st.date_input("Date of joining", value=None, format="DD/MM/YYYY")
-    submitted = st.form_submit_button("Add Joiner")
+form_col, _ = st.columns([1.4, 1])
+with form_col, st.container(border=True):
+    with st.form("add_joiner_form", clear_on_submit=False):
+        full_name = st.text_input("Full name")
+        candidate_email = st.text_input("Candidate email")
+        designation = st.selectbox("Designation", options=[""] + config.DESIGNATIONS)
+        doj = st.date_input("Date of joining", value=None, format="DD/MM/YYYY")
+        submitted = st.form_submit_button("Add Joiner", type="primary", use_container_width=True)
 
 if submitted:
     if not full_name.strip() or not candidate_email.strip() or not designation or not doj:

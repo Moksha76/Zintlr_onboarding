@@ -125,7 +125,11 @@ def sync_from_sheet() -> dict:
         missing = [c for c in _REQUIRED_COLUMNS if c not in header]
         if missing:
             result["missing_columns"] = missing
-            result["error"] = f"Sheet is missing expected column(s): {', '.join(missing)}"
+            headers_repr = ", ".join(repr(h) for h in header)
+            result["error"] = (
+                f"Sheet is missing expected column(s): {', '.join(missing)}. "
+                f"Columns actually found: {headers_repr}"
+            )
             _log_system_event(session, result["error"], "danger")
             return result
 

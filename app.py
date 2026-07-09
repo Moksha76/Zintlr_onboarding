@@ -1,10 +1,12 @@
 import streamlit as st
 
 from database.db import init_db
+from services.scheduler import start_scheduler
 
 st.set_page_config(page_title="Zintlr Onboarding", page_icon="\U0001F4CB", layout="wide")
 
 init_db()
+start_scheduler()
 
 st.sidebar.title("Zintlr Onboarding")
 

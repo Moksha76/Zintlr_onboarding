@@ -76,13 +76,14 @@ STATIC_ATTACHMENTS_DIR = "static/static_attachments"
 CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH", "credentials.json")
 GOOGLE_SHEET_URL = os.getenv("GOOGLE_SHEET_URL", "")
 
-# Google Sheet column names (exact — confirm with Nisha before Phase 4)
+# Google Sheet column names (exact)
 SHEET_COLUMNS = {
     "name": "Full_Name",
     "email": "Candidate_Email",
     "designation": "Designation",
     "doj": "DOJ",
-    "offer_letter": "Offer_Letter_Issued",
+    "ready_for_onboarding": "Ready_For_Onboarding",  # checkbox HR ticks when a row is complete
+    "bg_result": "BG_Result",  # dropdown: In Progress / Passed / Dropped
     "bg_sent": "BG_Sent",
     "bg_sent_date": "BG_Sent_Date",
     "db_sent": "DB_Form_Sent",

@@ -3,10 +3,12 @@ import streamlit as st
 import config
 from components.email_preview import show_email_preview
 from database.db import SessionLocal, init_db
-from database.models import Joiner
+from database.models import ActivityLog, Joiner
 from services import stage_service
+from services.scheduler import start_scheduler
 
 init_db()
+start_scheduler()
 
 st.title("Dashboard")
 
@@ -46,6 +48,17 @@ def _joiner_dict(j: Joiner) -> dict:
 
 session = SessionLocal()
 try:
+    last_sync = (
+        session.query(ActivityLog)
+        .filter(ActivityLog.event_type == "sheet_sync", ActivityLog.joiner_id.is_(None))
+        .order_by(ActivityLog.timestamp.desc())
+        .first()
+    )
+    if last_sync and last_sync.tone == "danger":
+        st.error(f"Sheet sync failed — {last_sync.details}")
+    elif last_sync and last_sync.tone == "warn":
+        st.warning(last_sync.details)
+
     all_joiners = session.query(Joiner).all()
 
     active = [j for j in all_joiners if j.current_stage not in ("COMPLETED", "DROPPED")]

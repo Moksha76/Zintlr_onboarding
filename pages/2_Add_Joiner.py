@@ -5,8 +5,10 @@ import streamlit as st
 import config
 from database.db import SessionLocal, init_db
 from database.models import ActivityLog, Joiner
+from services.scheduler import start_scheduler
 
 init_db()
+start_scheduler()
 
 st.title("Add Joiner")
 

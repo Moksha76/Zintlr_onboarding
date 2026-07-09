@@ -7,8 +7,10 @@ from components.email_preview import show_email_preview
 from database.db import SessionLocal, init_db
 from database.models import ActivityLog, Inventory, Joiner
 from services import stage_service
+from services.scheduler import start_scheduler
 
 init_db()
+start_scheduler()
 
 TEMPLATE_LABELS = {
     "bg_verification": "Send BG",

@@ -176,6 +176,21 @@ try:
                     stage_service.mark_dropped(joiner.id, reason)
                     st.rerun()
 
+        with st.expander("Delete this candidate permanently"):
+            st.warning(
+                "This permanently erases the candidate and all their history (emails, activity, "
+                "schedule) — it cannot be undone. Use this for test/mistake entries only. For a "
+                "real candidate who didn't proceed, use \"Drop\" above instead so the record is kept."
+            )
+            confirm_name = st.text_input(
+                f"Type the candidate's full name to confirm: {joiner.full_name}", key="delete_confirm_name"
+            )
+            if st.button("Delete permanently", disabled=confirm_name != joiner.full_name):
+                stage_service.delete_candidate(joiner.id)
+                st.session_state.pop("selected_joiner_id", None)
+                st.success("Candidate deleted.")
+                st.switch_page("pages/1_Dashboard.py")
+
         st.divider()
         st.subheader("Day-of-joining checklist")
 
@@ -271,7 +286,10 @@ try:
 
         st.divider()
         st.subheader("HR sheet sync")
-        st.caption("Will show live sheet values once Phase 4 (Google Sheets sync) is built.")
+        if joiner.sheet_row_index:
+            st.caption(f"Added from the HR sheet (row {joiner.sheet_row_index}). Status updates sync automatically.")
+        else:
+            st.caption("Added manually via Add Joiner — not linked to a sheet row.")
 
         st.divider()
         st.subheader("Scheduled emails")

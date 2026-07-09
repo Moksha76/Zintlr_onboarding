@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from database.db import SessionLocal
-from database.models import ActivityLog, Joiner
+from database.models import ActivityLog, EmailLog, Joiner, ScheduledEmail
 
 # Section 9 — stage transitions triggered by a successful email send.
 # "from" of None means the send never gates on / advances current_stage.
@@ -101,6 +101,23 @@ def mark_db_received(joiner_id: int):
 
 def mark_joined(joiner_id: int):
     _set_stage(joiner_id, from_stages=["ONBOARDING"], to_stage="JOINED", timestamp_field=None)
+
+
+def delete_candidate(joiner_id: int):
+    """Permanently remove a candidate and all their records (email log,
+    activity log, scheduled emails). Irreversible — for removing test/mistake
+    entries, not for real candidates who didn't proceed (use mark_dropped)."""
+    session = SessionLocal()
+    try:
+        session.query(EmailLog).filter(EmailLog.joiner_id == joiner_id).delete()
+        session.query(ActivityLog).filter(ActivityLog.joiner_id == joiner_id).delete()
+        session.query(ScheduledEmail).filter(ScheduledEmail.joiner_id == joiner_id).delete()
+        joiner = session.get(Joiner, joiner_id)
+        if joiner:
+            session.delete(joiner)
+        session.commit()
+    finally:
+        session.close()
 
 
 def mark_dropped(joiner_id: int, reason: str = ""):
